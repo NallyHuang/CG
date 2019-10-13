@@ -42,8 +42,8 @@ class AABB {
   update(dt) {
     this.center.add(this.vel.clone().multiplyScalar(dt));
     
-    if (Math.abs(this.center.x) > 40) this.vel.x *= -1;
-    if (Math.abs(this.center.y) > 40) this.vel.y *= -1;
+    if (Math.abs(this.center.x) > 40 - this.halfSize.x) this.vel.x *= -1;
+    if (Math.abs(this.center.y) > 40 - this.halfSize.y) this.vel.y *= -1;
     
     this.max.addVectors(this.center, this.halfSize);
     this.min.subVectors(this.center, this.halfSize);
