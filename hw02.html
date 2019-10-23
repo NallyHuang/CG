@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<style>
+	body {
+        line-height: 1.5em;
+        font-size: 1.5em;
+        font-family: Helvetica;
+      }
+	
+	#info {
+	  position: absolute;
+	  top: 10px;
+	  width: 100%;
+	  padding: 10px;
+	  text-align: center;
+	  color: #ffff00
+	}
+
+
+
+
+
+</style>
+</head>
+
+<body> 
+	<div id="info">hw02
+</div>
+	<script src="https://threejs.org/build/three.min.js"></script>
+	<script src="https://threejs.org/examples/js/controls/OrbitControls.js">
+	</script>
+	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+	<!--script src="https://rawgit.com/mrdoob/three.js/master/examples/js/loaders/DDSLoader.js"></script-->
+	<script src="https://raw.githack.com/mrdoob/three.js/dev/examples/js/loaders/MTLLoader.js"></script>
+	<script src="https://raw.githack.com/mrdoob/three.js/dev/examples/js/loaders/OBJLoader.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5/dat.gui.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+
+
+	
+<script>
+var camera, scene, renderer,stats;
+var up,down;
+var theObject;
+var controls;
+var modelName;
+var theModel;
+var clock = new THREE.Clock();
+var gcontrol;
+var period = 5;
+var v = 10;
+
+var pose0 = {
+	setX: 0,
+    setZ: 0,
+    rotationup: 0,
+    rotationdown: 0
+};
+var pose1= {
+	setX: -45.66469093988145,
+    setZ: 0,
+    rotationup: 0,
+    rotationdown: 0
+};
+
+var pose2 = {
+ 	setX: -45.66469093988145,
+ 	setZ: 0,
+	rotationup: -1.1329381879762912,
+	rotationdown: 0
+};
+	
+var pose3 = {
+	setX: -45.66469093988145,
+	setZ: 0,
+	rotationup: -1.1329381879762912,
+	rotationdown: -1.1329381879762912
+};
+	
+var pose4 = {
+	 setX: -26.15580016934801,
+     setZ: 50,
+	rotationup: -1.1329381879762912,
+	rotationdown: -1.1329381879762912
+
+};
+	
+var pose5 = {
+	 setX: -26.15580016934801,
+	setZ: 50,
+	rotationup: 0.38441998306519887,
+	rotationdown: -1.1329381879762912
+};
+	
+var pose6 = {
+	setX: -26.15580016934801,
+	setZ: 50,
+	rotationup: 0.38441998306519887,
+	rotationdown: 0.4277730736663843
+};
+	
+var pose7 = {
+ 	setX: 38.87383573243014,
+	setZ: 13.945808636748517,
+	rotationup: 0.38441998306519887,
+	rotationdown: 0.4277730736663843
+};
+	
+var pose8 = {
+	 setX: 38.87383573243014,
+     setZ: 13.945808636748517,
+     rotationup: 0.38441998306519887,
+     rotationdown: 1.598306519898391
+};
+
+var pose9 = {
+ 	setX: 38.87383573243014,
+	setZ: 13.945808636748517,
+	rotationup: 2,
+	rotationdown: 1.598306519898391
+};
+	
+var pose10 = {
+	   setX: 38.87383573243014,
+        setZ: -40.24555461473328,
+        rotationup: 2,
+        rotationdown: 1.598306519898391
+};
+
+var keys = [{s: 0,pose: pose0}, {s: 0.1,pose: pose1}, {s: 0.2,pose: pose2}, {s: 0.3,pose: pose3}, {s: 0.4,pose: pose4},{s: 0.5,pose: pose5}, {s: 0.6,pose: pose6},{s: 0.7,pose: pose7},{s: 0.8,pose: pose8}, {s: 0.9,pose: pose9}, {s: 1,pose: pose10}];
+
+
+
+init();
+animate();
+
+
+function init() {
+
+	scene = new THREE.Scene();
+  
+
+  stats = new Stats();
+  stats.domElement.style.position = 'absolute';
+  stats.domElement.style.top = '0px';
+  stats.domElement.style.zIndex = 100;
+  document.body.appendChild(stats.domElement);
+  scene = new THREE.Scene();
+	
+   clock = new THREE.Clock();
+
+  camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 1000);
+  camera.position.z = 300;
+  camera.position.y = 100;
+
+	
+  var gridXZ = new THREE.GridHelper(200, 20, 'red', 'white');
+  scene.add(gridXZ);
+
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x888888);
+
+  let controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  document.body.appendChild(renderer.domElement);
+
+  
+  var directionalLight = new THREE.DirectionalLight(0xffffff);
+  directionalLight.position.set(0, 0, 1).normalize();
+  scene.add(directionalLight);
+
+  var  light = new THREE.PointLight(0xffffff);
+  light.position.set(50,300, -50);
+  scene.add(light);
+  readModel();
+  readModel2();
+  //readTpose();
+	///////////////////////////
+	gcontrol = {
+    setX: 0,
+	setZ: 0,
+	rotationup: 0,
+	rotationdown: 0
+		
+  };
+
+  var gui = new dat.GUI({
+    load: loadJSON(),
+    preset: 'Default'
+  });
+  gui.domElement.id = 'gui';
+
+  gui.remember(gcontrol);
+
+  gui.add(gcontrol, 'setX', -50, 50);
+  gui.add(gcontrol, 'setZ', -50, 50);
+ gui.add(gcontrol, 'rotationup', -2, 2);
+  gui.add(gcontrol, 'rotationdown', -2, 2);
+  
+  
+ 
+  
+}
+	
+function loadJSON() {
+  return {
+    
+  "preset": "pose5",
+  "remembered": {
+    "Default": {
+      "0": {
+        "setX": 0,
+        "setZ": 0,
+        "rotationup": 0,
+        "rotationdown": 0
+      }
+    },
+    "pose1": {
+      "0": {
+        "setX": -45.66469093988145,
+        "setZ": 0,
+        "rotationup": 0,
+        "rotationdown": 0
+      }
+    },
+    "pose2": {
+      "0": {
+        "setX": -45.66469093988145,
+        "setZ": 0,
+        "rotationup": -1.1329381879762912,
+        "rotationdown": 0
+      }
+    },
+    "pose3": {
+      "0": {
+        "setX": -45.66469093988145,
+        "setZ": 0,
+        "rotationup": -1.1329381879762912,
+        "rotationdown": -1.1329381879762912
+      }
+    },
+    "pose4": {
+      "0": {
+        "setX": -26.15580016934801,
+        "setZ": 50,
+        "rotationup": -1.1329381879762912,
+        "rotationdown": -1.1329381879762912
+      }
+    },
+    "pose5": {
+      "0": {
+        "setX": -26.15580016934801,
+        "setZ": 50,
+        "rotationup": 0.38441998306519887,
+        "rotationdown": -1.1329381879762912
+      }
+    },
+    "pose6": {
+      "0": {
+        "setX": -26.15580016934801,
+        "setZ": 50,
+        "rotationup": 0.38441998306519887,
+        "rotationdown": 0.4277730736663843
+      }
+    },
+    "pose7": {
+      "0": {
+        "setX": 38.87383573243014,
+        "setZ": 13.945808636748517,
+        "rotationup": 0.38441998306519887,
+        "rotationdown": 0.4277730736663843
+      }
+    },
+    "pose8": {
+      "0": {
+        "setX": 38.87383573243014,
+        "setZ": 13.945808636748517,
+        "rotationup": 0.38441998306519887,
+        "rotationdown": 1.598306519898391
+      }
+    },
+    "pose9": {
+      "0": {
+        "setX": 38.87383573243014,
+        "setZ": 13.945808636748517,
+        "rotationup": 2,
+        "rotationdown": 1.598306519898391
+      }
+    },
+    "pose10": {
+      "0": {
+        "setX": 38.87383573243014,
+        "setZ": -40.24555461473328,
+        "rotationup": 2,
+        "rotationdown": 1.598306519898391
+      }
+    }
+  },
+  "closed": false,
+  "folders": {}
+}
+}
+
+
+function readModel ( targetSize=60) {
+
+  var onProgress = function(xhr) {
+    if (xhr.lengthComputable) {
+      var percentComplete = xhr.loaded / xhr.total * 100;
+      console.log(Math.round(percentComplete, 2) + '% downloaded');
+    }
+  };
+
+  var onError = function(xhr) {};
+
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.setPath('https://nallyhuang.github.io/threeJS/model/');
+  mtlLoader.load('tank1'+'.mtl', function(materials) {
+
+    materials.preload();
+
+    var objLoader = new THREE.OBJLoader();
+    objLoader.setMaterials(materials);
+    objLoader.setPath('https://nallyhuang.github.io/threeJS/model/');
+    objLoader.load('tank1'+'.obj', function(object) {
+		
+	    up =  unitize (object, targetSize);
+		up.name = 'OBJ'
+        up.position.y=10;
+        scene.add(up);
+        
+    }, onProgress, onError);
+
+  });
+
+}
+////2
+function readModel2 ( targetSize=60) {
+
+  var onProgress = function(xhr) {
+    if (xhr.lengthComputable) {
+      var percentComplete = xhr.loaded / xhr.total * 100;
+      console.log(Math.round(percentComplete, 2) + '% downloaded');
+    }
+  };
+
+  var onError = function(xhr) {};
+
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.setPath('https://nallyhuang.github.io/threeJS/model/');
+  mtlLoader.load('tank1'+'.mtl', function(materials) {
+
+    materials.preload();
+
+    var objLoader = new THREE.OBJLoader();
+    objLoader.setMaterials(materials);
+    objLoader.setPath('https://nallyhuang.github.io/threeJS/model/');
+    objLoader.load('tank1'+'.obj', function(object) {
+		
+	    down =  unitize (object, targetSize);
+		down.name = 'OBJ'
+        down.position.y=10;
+        scene.add(down);
+        
+    }, onProgress, onError);
+
+  });
+
+}
+////////4
+/*function readFront( targetSize=60) {
+
+  var onProgress = function(xhr) {
+    if (xhr.lengthComputable) {
+      var percentComplete = xhr.loaded / xhr.total * 100;
+      console.log(Math.round(percentComplete, 2) + '% downloaded');
+    }
+  };
+
+  var onError = function(xhr) {};
+
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.setPath('https://nallyhuang.github.io/threeJS/model/');
+  mtlLoader.load('tank1'+'.mtl', function(materials) {
+
+    materials.preload();
+
+    var objLoader = new THREE.OBJLoader();
+    objLoader.setMaterials(materials);
+    objLoader.setPath('https://leooooii.github.io/CGhw/hw2/tank/');
+    objLoader.load('tank1'+'.obj', function(object) {
+		
+	    tankfront =  unitize (object, targetSize);
+		tankfront.name = 'OBJ'
+        tankfront.position.y=7;
+        scene.add(tankfront);
+        
+    }, onProgress, onError);
+
+  });
+
+}*/
+	
+/////3
+/*function readTpose ( targetSize=15 ){
+
+  var onProgress = function(xhr) {
+    if (xhr.lengthComputable) {
+      var percentComplete = xhr.loaded / xhr.total * 100;
+      console.log(Math.round(percentComplete, 2) + '% downloaded');
+    }
+  };
+
+  var onError = function(xhr) {};
+
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.setPath('https://nallyhuang.github.io/threeJS/model/');
+  mtlLoader.load('tposech'+'.mtl', function(materials) {
+
+    materials.preload();
+
+    var objLoader = new THREE.OBJLoader();
+    objLoader.setMaterials(materials);
+    objLoader.setPath('https://nallyhuang.github.io/threeJS/model/');
+    objLoader.load('tposech'+'.obj', function(object) {
+		
+		Thead =  unitize (object, targetSize);
+		Thead.name = 'OBJ'
+        Thead.position.y=5;
+        Thead.position.z=50;
+        scene.add(Thead);
+        
+    }, onProgress, onError);
+
+  });
+
+}*/
+	
+
+////////////////////////////////////////
+
+// 
+function unitize (object, targetSize) {  
+	
+	var box3 = new THREE.Box3();
+	box3.setFromObject (object);
+	var size = new THREE.Vector3();
+	size.subVectors (box3.max, box3.min);
+	var center = new THREE.Vector3();
+	center.addVectors(box3.max, box3.min).multiplyScalar (0.5);
+
+	var objSize = Math.max (size.x, size.y, size.z);
+	var scaleSet = targetSize/objSize;
+				
+	var theObject =  new THREE.Object3D();
+
+	theObject.add (object);
+	object.scale.set (scaleSet, scaleSet, scaleSet);
+	object.position.set (-center.x*scaleSet, -center.y*scaleSet, -center.z*scaleSet);
+    
+	return theObject;
+			
+}
+
+function animate() {
+	var t = clock.getElapsedTime() % period;
+  	var s = t / period; // normalized time
+  
+  for (var i = 1; i < keys.length; i++) {
+  	if (keys[i].s > s)
+    	break;
+  	}
+  
+	i = i-1;
+	 var tt = (s - keys[i].s) / (keys[i + 1].s - keys[i].s);
+    var setX = (1 - tt) * keys[i].pose.setX + tt * keys[i + 1].pose.setX;
+  var setZ = (1 - tt) * keys[i].pose.setZ + tt * keys[i + 1].pose.setZ;
+  var rotationup = (1 - tt) * keys[i].pose.rotationup+ tt * keys[i + 1].pose.rotationup;
+  var rotationdown = (1 - tt) * keys[i].pose.rotationdown+ tt * keys[i + 1].pose.brotationdown;
+
+  
+	////////////////////
+	 var localPlane1 = new THREE.Plane( new THREE.Vector3( 0,  1, 0 ), -12.5 );
+     var localPlane2 =new THREE.Plane( new THREE.Vector3( 0,  -1, 0 ), 12.5 );
+    // var localPlane3 =new THREE.Plane( new THREE.Vector3( 1,  0, 0 ), -7.5 );
+	 //var localPlane4 =new THREE.Plane( new THREE.Vector3( 0,  1, 0 ), -10);
+	 //var localPlane5 =new THREE.Plane( new THREE.Vector3( -1,  0, 0 ), 7.5 );
+
+	if(up != undefined ) {
+ 		for(let i=0;i<9;i++)
+        up.children[0].children[0].material[i].clippingPlanes = [localPlane1];
+		up.position.x = gcontrol.setX;
+		up.position.z = gcontrol.setZ;
+		up.rotation.y = gcontrol.rotationup;
+		//up.rotation.y=angel;
+	}
+		if(down != undefined ) {
+ 		 for(let i=0;i<9;i++)
+        down.children[0].children[0].material[i].clippingPlanes = [localPlane2];
+			down.position.x = gcontrol.setX;
+			down.position.z= gcontrol.setZ;
+			down.rotation.y = gcontrol.rotationdown;
+    }
+	
+	/*if(tankfront != undefined ) {
+ 		 for(let i=0;i<9;i++){
+        tankfront.children[0].children[0].material[i].clippingPlanes = [localPlane3,localPlane4];
+		 }
+		//tankfront.rotation.y= Math.PI/6;
+    }*/
+
+
+	///////////
+	stats.update();
+	renderer.localClippingEnabled = true;
+  requestAnimationFrame(animate);
+  render();
+
+}
+
+function render() {
+		
+  renderer.render(scene, camera);
+
+}
+
+
+</script>
+</body>
+
+</html>
