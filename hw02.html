@@ -51,8 +51,8 @@ var modelName;
 var theModel;
 var clock = new THREE.Clock();
 var gcontrol;
-var period = 5;
-var v = 10;
+var period = 6.1;
+var v = 100;
 
 var pose0 = {
 	setX: 0,
@@ -158,12 +158,22 @@ function init() {
   camera.position.y = 100;
 
 	
-  var gridXZ = new THREE.GridHelper(200, 20, 'red', 'white');
-  scene.add(gridXZ);
+  //var gridXZ = new THREE.GridHelper(200, 20, 'red', 'white');
+  //scene.add(gridXZ);
 
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(0x888888);
+	
+  let loader = new THREE.TextureLoader();
+  loader.crossOrigin = '';
+  var  texture = loader.load('http://1.bp.blogspot.com/_gS0uIKNl0Wc/TPPn0b8dpEI/AAAAAAAABBI/nrAdeDq5_Vs/s1600/dirt.jpg');
+  var floor = new THREE.Mesh (new THREE.PlaneGeometry(200,200), new THREE.MeshPhongMaterial({side: THREE.DoubleSide,map:texture}));
+  floor.rotation.x=-Math.PI/2;
+  scene.add(floor);
+  
+	floor.receiveShadow = true;
+  renderer.shadowMap.enabled = true;
 
   let controls = new THREE.OrbitControls(camera, renderer.domElement);
 
@@ -171,13 +181,26 @@ function init() {
 
   
   var directionalLight = new THREE.DirectionalLight(0xffffff);
-  directionalLight.position.set(0, 0, 1).normalize();
+  directionalLight.position.set(0, 10, 0).normalize();
   scene.add(directionalLight);
+	
 
   var  light = new THREE.PointLight(0xffffff);
-  light.position.set(50,300, -50);
+  light.position.set(0,300, -50);
+  light.castShadow = true;
+  light.shadow.mapSize.width = 1024;
+  light.shadow.mapSize.height = 1024;
+  light.shadow.camera.near = 10;
+  light.shadow.camera.far = 200;
   scene.add(light);
-  readModel();
+	
+  var light2 = new THREE.SpotLight(0xffffff, 0.5);
+  light2.position.set(0, 100, 0);
+  scene.add(light2);
+  light2.castShadow = true;
+	
+	
+	readModel();
   readModel2();
   //readTpose();
 	///////////////////////////
@@ -332,6 +355,8 @@ function readModel ( targetSize=60) {
 	    up =  unitize (object, targetSize);
 		up.name = 'OBJ'
         up.position.y=10;
+		up.children[0].children[0].castShadow = true;
+        up.children[0].children[0].receiveShadow = true;
         scene.add(up);
         
     }, onProgress, onError);
@@ -365,6 +390,8 @@ function readModel2 ( targetSize=60) {
 	    down =  unitize (object, targetSize);
 		down.name = 'OBJ'
         down.position.y=10;
+		down.children[0].children[0].castShadow = true;
+        down.children[0].children[0].receiveShadow = true;
         scene.add(down);
         
     }, onProgress, onError);
@@ -468,21 +495,23 @@ function unitize (object, targetSize) {
 }
 
 function animate() {
+
+	
 	var t = clock.getElapsedTime() % period;
-  	var s = t / period; // normalized time
+  var s = t / period; // normalized time
   
   for (var i = 1; i < keys.length; i++) {
   	if (keys[i].s > s)
     	break;
-  	}
+  }
   
 	i = i-1;
 	 var tt = (s - keys[i].s) / (keys[i + 1].s - keys[i].s);
     var setX = (1 - tt) * keys[i].pose.setX + tt * keys[i + 1].pose.setX;
   var setZ = (1 - tt) * keys[i].pose.setZ + tt * keys[i + 1].pose.setZ;
   var rotationup = (1 - tt) * keys[i].pose.rotationup+ tt * keys[i + 1].pose.rotationup;
-  var rotationdown = (1 - tt) * keys[i].pose.rotationdown+ tt * keys[i + 1].pose.brotationdown;
-
+  var rotationdown = (1 - tt) * keys[i].pose.rotationdown+ tt * keys[i + 1].pose.rotationdown;
+	
   
 	////////////////////
 	 var localPlane1 = new THREE.Plane( new THREE.Vector3( 0,  1, 0 ), -12.5 );
@@ -492,23 +521,22 @@ function animate() {
 	 //var localPlane5 =new THREE.Plane( new THREE.Vector3( -1,  0, 0 ), 7.5 );
 
 	if(up != undefined ) {
- 		for(let i=0;i<9;i++)
+ 		for(let i=0;i<up.children[0].children[0].material.length;i++)
         up.children[0].children[0].material[i].clippingPlanes = [localPlane1];
-		up.position.x = gcontrol.setX;
-		up.position.z = gcontrol.setZ;
-		up.rotation.y = gcontrol.rotationup;
-		//up.rotation.y=angel;
+		up.position.x = setX;
+		up.position.z = setZ;
+		up.rotation.y = rotationup;
 	}
 		if(down != undefined ) {
- 		 for(let i=0;i<9;i++)
+ 		 for(let i=0;i<down.children[0].children[0].material.length;i++)
         down.children[0].children[0].material[i].clippingPlanes = [localPlane2];
-			down.position.x = gcontrol.setX;
-			down.position.z= gcontrol.setZ;
-			down.rotation.y = gcontrol.rotationdown;
+			down.position.x = setX;
+			down.position.z= setZ;
+			down.rotation.y = rotationdown;
     }
 	
 	/*if(tankfront != undefined ) {
- 		 for(let i=0;i<9;i++){
+ 		 for(let i=0;i<tankfront.children[0].children[0].material.length;i++){
         tankfront.children[0].children[0].material[i].clippingPlanes = [localPlane3,localPlane4];
 		 }
 		//tankfront.rotation.y= Math.PI/6;
