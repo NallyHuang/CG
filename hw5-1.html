@@ -148,7 +148,8 @@ $('#coords').change( function() {
       }
     });
 var scene, renderer, camera;
-var movingTeapot,pointTeapot;
+var movingTeapot;
+var midTeapot;
 var angle = 0;
 var teapotMaterial;
 init();
@@ -164,6 +165,7 @@ function init() {
   document.body.appendChild(renderer.domElement);
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
+  camera.position.y = 100;
   camera.position.z = 200;
   camera.lookAt(new THREE.Vector3(0, 0, 0));
   controls = new THREE.OrbitControls(camera, renderer.domElement);
